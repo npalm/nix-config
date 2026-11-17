@@ -1,0 +1,24 @@
+{
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "extensions.autoUpdate": false,
+  "extensions.autoCheckUpdates": false,
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nixd",
+  "nix.serverSettings": {
+    "nixd": {
+      "formatting": {
+        "command": ["nixfmt"]
+      }
+    }
+  },
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
+  },
+  "dev.containers.defaultExtensions": [
+    "eamodio.gitlens",
+    "redhat.vscode-yaml",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode"
+  ]
+}

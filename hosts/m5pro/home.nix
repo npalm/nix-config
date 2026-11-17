@@ -4,6 +4,7 @@
 {
   imports = [
     ../../modules/home/dev-tools.nix
+    ../../modules/home/vscode-insiders.nix
     ../../modules/home/git.nix
     ../../modules/home/ai-tools.nix
     ../../modules/home/terminal.nix

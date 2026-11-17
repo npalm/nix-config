@@ -5,7 +5,7 @@
     # Stable: operating system, Home Manager and general tooling.
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
 
-    # Unstable: only for fast-moving AI tools (see modules/home/ai-tools.nix).
+    # Unstable: AI tools and selected developer tools (including the Dev Containers CLI).
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
