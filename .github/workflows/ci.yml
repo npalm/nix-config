@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  # The private input (flake.nix) is a local directory; CI uses dummy values.
+  NIX_PRIVATE: --override-input private path:./ci/private-example
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint (pre-commit, secrets, workflows)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout
+    env:
+      GH_TOKEN: ${{ github.token }} # zizmor online audits, gh-actions-lock --verify
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0 # full history for the betterleaks scan
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31.11.5
+      - name: pre-commit (all files)
+        run: nix develop $NIX_PRIVATE --command pre-commit run --all-files --show-diff-on-failure
+      - name: betterleaks (full git history)
+        run: nix develop $NIX_PRIVATE --command betterleaks git --redact --no-banner --verbose
+      - name: zizmor (pedantic, online audits)
+        run: nix develop $NIX_PRIVATE --command zizmor --persona pedantic .
+      - name: actions.lock verify
+        run: nix develop $NIX_PRIVATE --command gh-actions-lock --verify
+
+  eval:
+    name: evaluate darwin configurations
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31.11.5
+      # Evaluation only (no build, no macOS runner needed): catches Nix errors,
+      # missing options and disallowed unfree packages.
+      - name: evaluate m5pro
+        run: nix eval $NIX_PRIVATE --raw .#darwinConfigurations.m5pro.system.drvPath

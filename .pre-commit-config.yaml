@@ -1,0 +1,46 @@
+# Hooks run with tools from the dev shell (devshell.nix); enter it via direnv
+# or `nix develop`. Run all hooks manually: pre-commit run --all-files
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      - id: nixfmt
+        name: nixfmt
+        entry: nixfmt
+        language: system
+        types: [nix]
+
+      - id: betterleaks
+        name: betterleaks (staged changes)
+        entry: betterleaks git --pre-commit --staged --redact --no-banner --verbose
+        language: system
+        pass_filenames: false
+
+      - id: no-email-addresses
+        name: no email addresses (keep them in ~/.config/nix-private)
+        language: pygrep
+        entry: '[\w.+-]+@(?!example\.com\b|github\.com\b|openssh\.com\b|users\.noreply\.github\.com\b)[\w-]+(\.[\w-]+)*\.[a-z]{2,}\b'
+        exclude: ^flake\.lock$
+
+      - id: zizmor
+        name: zizmor (pedantic, offline)
+        entry: zizmor --persona pedantic --offline .
+        language: system
+        files: ^(\.github/|\.pre-commit-config\.yaml$)
+        pass_filenames: false
+
+      - id: actions-lock
+        name: actions.lock coverage (run `gh actions-lock` to fix)
+        entry: gh-actions-lock --verify-local
+        language: system
+        files: ^\.github/workflows/
+        pass_filenames: false
