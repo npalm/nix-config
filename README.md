@@ -15,6 +15,7 @@ software and settings. The current configuration is named `m5pro`.
 | `hosts/<name>/home.nix` | User modules for a device |
 | `modules/darwin/` | Shared macOS and Nix settings |
 | `modules/home/` | Software, shell, Git, SSH and editor settings |
+| `packages/` | Local packages for software not current in nixpkgs |
 | `ci/private-example/` | Example personal values, also used by CI |
 | `devshell.nix`, `.pre-commit-config.yaml`, `.github/` | Development tools and checks |
 
@@ -22,20 +23,42 @@ Personal values live outside the repo in `~/.config/nix-private/default.nix`.
 The public flake reads them through `/etc/nix-private/default.nix`, using a
 local symlink. See [device setup](docs/setup.md).
 
-## Everyday commands
+## Daily use with nh
 
-Run these from `~/.config/nix-darwin`. Choose either column.
-`nh` shows a package diff and asks before activating when you use `--ask`.
+[nh](https://github.com/nix-community/nh) is included in this setup. It
+builds the configuration, shows a package diff and handles sudo when
+needed. `--ask` asks for confirmation before activating.
 
-| Task | With `nh` | With `darwin-rebuild` |
-| --- | --- | --- |
-| Build without applying | `nh darwin build` | `darwin-rebuild build --flake .#m5pro` |
-| Apply changes | `nh darwin switch --ask` | `sudo darwin-rebuild switch --flake .#m5pro` |
-| Update all inputs and apply | `nh darwin switch --ask --update` | `nix flake update` then the apply command above |
+```sh
+cd ~/.config/nix-darwin
+
+# Build without applying
+nh darwin build
+
+# Apply configuration changes using the current lockfile
+nh darwin switch --ask
+
+# Update all inputs in flake.lock, then build and apply
+nh darwin switch --ask --update
+
+# Update only unstable tools, then build and apply
+nh darwin switch --ask --update-input nixpkgs-unstable
+```
 
 `nh` gets the device and repository path from `NH_DARWIN_FLAKE`, set by this
 configuration. Before the first activation, pass them explicitly:
 `nh darwin switch --ask .#m5pro`.
+
+### With darwin-rebuild
+
+Run these from `~/.config/nix-darwin`:
+
+| Task | Command |
+| --- | --- |
+| Build without applying | `darwin-rebuild build --flake .#m5pro` |
+| Apply changes | `sudo darwin-rebuild switch --flake .#m5pro` |
+
+To update first, run `nix flake update`, then the apply command.
 
 ## Update software
 
@@ -80,6 +103,11 @@ the flake can see them.
 
 Unfree packages also need an allowlist entry in `flake.nix` for unstable,
 or `modules/darwin/nix.nix` for stable.
+
+OpenShell uses NVIDIA's 0.1.9 CLI archive, pinned by version and checksum in
+`packages/openshell.nix`, because nixpkgs has an older release. To update
+it, change both the version and archive hash there. Its gateway and sandbox
+runtime need separate setup; see the [NVIDIA documentation](https://docs.nvidia.com/openshell/v0.1.9/about/installation).
 
 VS Code Insiders and Docker Desktop are installed through Homebrew.
 Use `brew install --cask <name>` or `brew uninstall --cask <name>` for those
